@@ -15,10 +15,26 @@ sys.setdefaultencoding("utf8")
 userName = "traviswu@gmail.com"
 passwd = "ktxdabcd"
 
+
+class BSHelper(object):
+    def __init__(self):
+        self.allBookings = None
+
+    def getAllBookings(self, rentalID):
+        existingBookings = BSAPI.API().rentals(rentalID).bookings.get()
+        return existingBookings
+
+    def load(self):
+#        slber = slumber.API("https://www.bookingsync.com/bookings.xml?from=20130101&status=booked&per_page=500", auth=(userName, passwd))
+#        self.allBookings = slber.get()
+        self.allBookings = BSAPI.API().bookings.get(status="booked",per_page="500")
+
 class BSAPI(object):
     @staticmethod
     def API():
         return slumber.API("https://www.bookingsync.com/", auth=(userName, passwd))
+
+
 
 class BSBooking(object):
     def __init__(self):
@@ -76,6 +92,7 @@ class BSBooking(object):
         for attr, value in vars(self).items():
             if attr.endswith('_at') and cBooking[attr] is not None: setattr(self, attr, datetime.datetime.strptime(cBooking[attr], '%Y-%m-%dT%H:%M:%SZ'))
             else: setattr(self, attr, cBooking[attr])
+
 
     def exists(self, currBooking):  # booking: from email confirmation
         for apt in BSAPI.API().rentals.get():  # first: find the apt ID
