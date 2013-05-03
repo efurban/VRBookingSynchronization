@@ -1,8 +1,8 @@
-__author__ = 'urban'
+__author__ = 'Travis Wu'
 
 import pymysql
 import datetime
-import Booking as emailBooking
+#import Booking as emailBooking
 
 
 
@@ -57,8 +57,8 @@ class VRDB:
                 bookingSource = 1
             if emailBooking.bookingSource == "Wimdu":
                 bookingSource = 2
-            sqlcmd = sqlcmd % (pymysql.escape_string(str(emailBooking.aptNum)), checkInDate, checkOutDate, str(emailBooking.price), '0', str(emailBooking.guestCount), \
-                           pymysql.escape_string(str(bookingSource)), pymysql.escape_string(str(emailBooking.confirmationCode).replace("Confirmation Code: ", "")),'0', pymysql.escape_string(''), \
+            sqlcmd = sqlcmd % (pymysql.escape_string(str(emailBooking.aptNum)), checkInDate, checkOutDate, str(emailBooking.price), '0', str(emailBooking.guestCount),
+                           pymysql.escape_string(str(bookingSource)), pymysql.escape_string(str(emailBooking.confirmationCode).replace("Confirmation Code: ", "")),'0', pymysql.escape_string(''),
                             bookingDate)
 #            print sqlcmd
 
