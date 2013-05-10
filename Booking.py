@@ -72,6 +72,9 @@ class Booking:
         self.BS_aptID = None
         self.deposit = None
 
+#    def parseBookingFromBS(self, bsObj):
+
+
     def parseBookingFromAirbnbEmail(self, emailBody):
         raw_email_str = emailBody.decode('utf-8')
         _email = email.message_from_string(raw_email_str)

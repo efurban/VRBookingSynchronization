@@ -67,3 +67,14 @@ class VRDB:
         except Exception, e:
             print e
             pass
+
+    def commitToDB(self, aptNum, checkInDate, checkOutDate, price, deposit, guestCount, bookingSource, confirmationCode, client_id, bookingDate, note):
+        self.conn = pymysql.connect(host='nycapt.db.7527697.hostedresource.com', port=3306, user='nycapt', passwd='Ktxd1976@', db='nycapt')
+        sqlcmd =  "call pr_insertUpdate_booking(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+        sqlcmd = sqlcmd % (pymysql.escape_string(str(aptNum)), checkInDate, checkOutDate, str(price), str(deposit), str(guestCount),
+                           pymysql.escape_string(str(bookingSource)), pymysql.escape_string(str(confirmationCode).replace("Confirmation Code: ", "")), str(client_id), bookingDate, pymysql.escape_string(note)
+                           )
+        self.dbcur = self.conn.cursor()
+        self.dbcur.execute(sqlcmd)
+        self.conn.commit()
+

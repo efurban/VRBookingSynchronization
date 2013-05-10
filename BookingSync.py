@@ -8,6 +8,7 @@ import slumber
 import datetime
 import vrDB
 import sys
+import Booking
 
 reload(sys);
 sys.setdefaultencoding("utf8")
