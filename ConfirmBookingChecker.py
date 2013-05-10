@@ -107,7 +107,7 @@ try:
 
         # need to put this back
         today = datetime.date.today()
-        if currEmailBooking.checkOutDate.date() < today:
+        if currEmailBooking.checkOutDate.date() <= today:
             continue
 
         currBSBookingObj = currBSBooking.exists(currEmailBooking)
