@@ -1,9 +1,7 @@
 import datetime
 import imaplib
-import email
 
 import sys
-from email.header import decode_header
 reload(sys)
 sys.setdefaultencoding("utf8")
 
@@ -97,3 +95,36 @@ class WimduConfirmation(object):
         imapSession.close()
         imapSession.logout()
 
+class BookingComConfirmation(object):
+    def __init__(self):
+        self.emails = []
+
+    def GetAll(self, numOfDaysLookback):
+        self.emails = []
+
+        date = (datetime.date.today() - datetime.timedelta(numOfDaysLookback)).strftime("%d-%b-%Y")
+        imapSession = imaplib.IMAP4_SSL('imap.gmail.com')
+        typ, accountDetails = imapSession.login(userName, passwd)
+        if typ != 'OK':
+            print('Not able to sign in!')
+            raise 0
+
+        imapSession.select('[Gmail]/All Mail', True)
+        typ, data = imapSession.uid('search', None, '(SENTSINCE {date} HEADER Subject "Please confirm: new reservation! ")'.format(date=date))
+        if typ != 'OK':
+            print('Error searching Inbox.')
+            raise 0
+
+        # Iterating over all emails
+        messageID_list = data[0].split()
+        print 'total Booking.com email confirmation count: %s' % ( len(messageID_list) )
+        for messageID in messageID_list:
+            typ, messageParts = imapSession.uid('fetch', messageID, '(RFC822)')
+            if typ != 'OK':
+                print('Error fetching mail.')
+                raise 0
+            emailBody = messageParts[0][1] # take the raw email. the parser later will get the proper payload
+            self.emails.append(emailBody)
+
+        imapSession.close()
+        imapSession.logout()

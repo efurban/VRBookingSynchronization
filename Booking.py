@@ -11,14 +11,11 @@ import re
 import datetime
 from BeautifulSoup import BeautifulSoup
 #import urllib
-import urllib2
 import locale
+import mechanize
 #import parsedatetime
 import mx.DateTime.Parser as mxparser
 from email.header import decode_header
-
-from dateutil import parser
-
 
 import sys
 reload(sys)
@@ -217,3 +214,63 @@ class Booking:
             self.phone = rightColumns[23].string
             self.email = rightColumns[25].contents[0].string
             self.note = "Booked from Wimdu\n%s\n%s\n%s" % (self.phone, self.email, self.confirmationCode)
+
+
+    def parseBookingFromBookingComEmail(self, emailBody):
+        _email = email.message_from_string(emailBody)
+        emailBody = ""
+        payload = _email.get_payload(decode=True)
+        # there is only one , so this walk is ok
+        for part in _email.walk():
+            # each part is a either non-multipart, or another multipart message
+            # that contains further parts... Message is organized like a tree
+            if part.get_content_type() == 'text/html':
+                emailBody = part.get_payload(decode=True) # prints the raw text
+
+        # get the url from confirmation email.
+        # log into booking admin page
+        # retrieves the booking confirmation page
+        soup = BeautifulSoup(repr(emailBody))
+        confirmLinks = soup.findAll('a', {'href': True})
+        browser = mechanize.Browser()
+        browser.set_handle_robots(False)
+        browser.addheaders = [('User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
+        browser.open('https://admin.booking.com/hotel/hoteladmin/login.html')
+        browser.select_form(name="myform")
+        browser.form["loginname"] = "536676"
+        browser.form["password"] = "nycapt523"
+        browser.submit()
+        # get the page content
+        url = confirmLinks[0].attrMap['href']
+        url = url.replace('\\n','')
+        page = browser.open(url)
+        confirmationPage = page.read().decode("UTF-8")
+
+
+        # soup it
+        soup = BeautifulSoup(repr(confirmationPage))
+        allItems = soup.findAll('td')
+        bookerBookingSoup = soup.findAll("div", { "class" : "booker-booking" })
+        bookerBooking = bookerBookingSoup[0].contents[0].replace('\\n','').replace('\\t','').split('&#0183;')
+        self.price = bookerBooking[2].replace('USD','').replace('&nbsp;', '').strip()
+        self.price = int(self.price)
+
+        contactSoup = soup.findAll("div", { "class" : "booker-contact" })
+        contact = contactSoup[0].string.replace('\\n','').replace('\\t','').split('&#0183;')
+        self.phone = contact[0].strip()
+        self.email = contact[1].strip()
+
+        bookerInfoSoup = soup.find("div", { "class" : "booker-info" })
+        bookerInfo = bookerInfoSoup.contents[0].replace('\\n','').replace('\\t','').split('&#0183;')
+        self.bookingDate =  datetime.datetime.strptime(bookerInfo[0].strip(), '%A, %B %d, %Y at %H:%M:%S')
+        self.confirmationCode = bookerInfo[1].strip()
+        self.guestName = allItems[1].contents[1].contents[0].replace('\\n','').replace('\\t','').strip()
+        self.aptName = allItems[7].string.replace('\\n','').replace('\\t','').strip()
+#        self.aptNum
+        self.checkInDate = datetime.datetime.strptime(allItems[3].string.strip(), '%d-%m-%Y')
+        self.checkOutDate = datetime.datetime.strptime(allItems[5].string.strip(), '%d-%m-%Y')
+        self.guestCount = allItems[9].string.replace('\\n','').replace('\\t','').strip()
+        self.bookingDate = mxparser.DateTimeFromString(str(_email['date'])).pydatetime()
+        self.bookingSource = "Booking.com"
+        self.note = "Booked from Booking.com\n%s\n%s\n%s" % (self.phone, self.email, self.confirmationCode)
+

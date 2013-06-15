@@ -7,13 +7,13 @@ import vrDB
 import sys
 
 
-import sys
 reload(sys)
 sys.setdefaultencoding("utf8")
 
-
-numOfDaysLookback_Airbnb = 10
+numOfDaysLookback_Airbnb = 2
 numOfDaysLookback_Wimdu = 2
+numOfDaysLookback_bookingCom = 1
+
 Dry = False
 FillDBOnly = False
 
@@ -29,6 +29,23 @@ try:
 
     allBookingsFromEmails = []
     db = vrDB.VRDB()
+
+    bookingComEmails  = confirmations.BookingComConfirmation()
+    bookingComEmails.GetAll(numOfDaysLookback_bookingCom)
+
+    sys.stdout.write("Parsing Booking.com emails")
+    for eBody in bookingComEmails.emails:
+        bcBooking = emailBooking.Booking()  # can be any booking (Airbnb, wimdu...etc)
+        try:
+            bcBooking.parseBookingFromBookingComEmail(eBody)  # confirmed booking from Airbnb, could be new or existing
+            if bcBooking.price == 0:
+                continue  # when price = 0 from booking.com, that 's a cancellation
+            allBookingsFromEmails.append(bcBooking)
+            sys.stdout.write(".")
+        except Exception, e:
+            print 'something is wrong', e
+            continue
+    sys.stdout.write("[DONE]\n")
 
     sys.stdout.write("Parsing Wimdu emails")
     for eBody in wimduEmails.emails:
@@ -140,7 +157,16 @@ try:
         else:
             print 'creating BS booking...'
             currBSBooking.popuateFromBooking(currEmailBooking)
-            emailMessage = emailMessage + "\nBooked from: %s\nApt # = %s\nStartDate = %s\nEndDate = %s\nName = %s\nPrice = %s\n" % (currEmailBooking.bookingSource, currEmailBooking.aptNum, str(currEmailBooking.checkInDate), str(currEmailBooking.checkOutDate), currEmailBooking.guestName, str(currEmailBooking.price))
+            emailMessage = emailMessage + "\nBooked from: %s\nApt # = %s\nStartDate = %s\nEndDate = %s\nName = %s\nPrice = %s\n\nEmail = %s\nBooking # = %s" \
+                           % (currEmailBooking.bookingSource,
+                              currEmailBooking.aptNum,
+                              str(currEmailBooking.checkInDate),
+                              str(currEmailBooking.checkOutDate),
+                              currEmailBooking.guestName,
+                              str(currEmailBooking.price),
+                              currEmailBooking.email,
+                              str(currEmailBooking.confirmationCode)
+                )
             if guest.id is not None:
                 currBSBooking.client_id = guest.id
             try:
