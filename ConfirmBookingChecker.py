@@ -5,6 +5,7 @@ import Booking as emailBooking
 import BookingSync as BS
 import vrDB
 import sys
+import mechanize
 
 
 reload(sys)
@@ -12,7 +13,7 @@ sys.setdefaultencoding("utf8")
 
 numOfDaysLookback_Airbnb = 2
 numOfDaysLookback_Wimdu = 2
-numOfDaysLookback_bookingCom = 1
+numOfDaysLookback_bookingCom =2
 
 Dry = False
 FillDBOnly = False
@@ -34,6 +35,19 @@ try:
     bookingComEmails.GetAll(numOfDaysLookback_bookingCom)
 
     sys.stdout.write("Parsing Booking.com emails")
+
+    # log into the auth page at booking.com so we don't need to login later when retrieving the booking info
+    browser = mechanize.Browser()
+    browser.set_handle_robots(False)
+    #        browser.addheaders = [('User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
+    browser.addheaders = [('User-agent', 'Firefox')]
+#        browser.open('https://admin.booking.com/hotel/hoteladmin/?lang=en')
+    browser.open('https://admin.booking.com/hotel/hoteladmin/login.html')
+    browser.select_form(name="myform")
+    browser.form["loginname"] = "536676"
+    browser.form["password"] = "nycapt523"
+    browser.submit()
+
     for eBody in bookingComEmails.emails:
         bcBooking = emailBooking.Booking()  # can be any booking (Airbnb, wimdu...etc)
         try:
@@ -157,16 +171,17 @@ try:
         else:
             print 'creating BS booking...'
             currBSBooking.popuateFromBooking(currEmailBooking)
-            emailMessage = emailMessage + "\nBooked from: %s\nApt # = %s\nStartDate = %s\nEndDate = %s\nName = %s\nPrice = %s\n\nEmail = %s\nBooking # = %s" \
+            emailMessage = emailMessage + "\nBooked from: %s\nApt # = %s\nStartDate = %s\nEndDate = %s\nName = %s\nPrice = %s\n\nEmail = %s\nBooking # = %s\n\n" \
                            % (currEmailBooking.bookingSource,
                               currEmailBooking.aptNum,
                               str(currEmailBooking.checkInDate),
                               str(currEmailBooking.checkOutDate),
-                              currEmailBooking.guestName,
+                              currEmailBooking.guestName,  # if has utf code this breaks. need to fix
                               str(currEmailBooking.price),
                               currEmailBooking.email,
                               str(currEmailBooking.confirmationCode)
                 )
+            emailMessage = emailMessage.encode('utf-8')
             if guest.id is not None:
                 currBSBooking.client_id = guest.id
             try:

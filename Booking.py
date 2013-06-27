@@ -234,17 +234,24 @@ class Booking:
         confirmLinks = soup.findAll('a', {'href': True})
         browser = mechanize.Browser()
         browser.set_handle_robots(False)
-        browser.addheaders = [('User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
-        browser.open('https://admin.booking.com/hotel/hoteladmin/login.html')
-        browser.select_form(name="myform")
-        browser.form["loginname"] = "536676"
-        browser.form["password"] = "nycapt523"
-        browser.submit()
+#        browser.addheaders = [('User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
+        browser.addheaders = [('User-agent', 'Firefox')]
+#        browser.open('https://admin.booking.com/hotel/hoteladmin/?lang=en')
+##browser.open('https://admin.booking.com/hotel/hoteladmin/login.html')
+#        browser.select_form(name="myform")
+#        browser.form["loginname"] = "536676"
+#        browser.form["password"] = "nycapt523"
+#        browser.submit()
         # get the page content
         url = confirmLinks[0].attrMap['href']
         url = url.replace('\\n','')
         page = browser.open(url)
         confirmationPage = page.read().decode("UTF-8")
+
+#        browser.select_form(nr=0)
+#        browser.form["loginname"] =  "536676"
+#        browser.form["password"] = "nycapt523"
+#        creditCardPage = browser.submit()
 
 
         # soup it
@@ -265,6 +272,7 @@ class Booking:
         self.bookingDate =  datetime.datetime.strptime(bookerInfo[0].strip(), '%A, %B %d, %Y at %H:%M:%S')
         self.confirmationCode = bookerInfo[1].strip()
         self.guestName = allItems[1].contents[1].contents[0].replace('\\n','').replace('\\t','').strip()
+        self.guestName = self.guestName.decode('unicode_escape').encode('utf-8').decode('utf-8')
         self.aptName = allItems[7].string.replace('\\n','').replace('\\t','').strip()
 #        self.aptNum
         self.checkInDate = datetime.datetime.strptime(allItems[3].string.strip(), '%d-%m-%Y')
@@ -273,4 +281,7 @@ class Booking:
         self.bookingDate = mxparser.DateTimeFromString(str(_email['date'])).pydatetime()
         self.bookingSource = "Booking.com"
         self.note = "Booked from Booking.com\n%s\n%s\n%s" % (self.phone, self.email, self.confirmationCode)
+
+#        ccSoup = BeautifulSoup(repr(creditCardPage))
+#        allItems = ccSoup.findAll('td')
 
