@@ -13,7 +13,7 @@ sys.setdefaultencoding("utf8")
 
 numOfDaysLookback_Airbnb = 2
 numOfDaysLookback_Wimdu = 2
-numOfDaysLookback_bookingCom =2
+numOfDaysLookback_bookingCom =1
 
 Dry = False
 FillDBOnly = False
@@ -52,8 +52,8 @@ try:
         bcBooking = emailBooking.Booking()  # can be any booking (Airbnb, wimdu...etc)
         try:
             bcBooking.parseBookingFromBookingComEmail(eBody)  # confirmed booking from Airbnb, could be new or existing
-            if bcBooking.price == 0:
-                continue  # when price = 0 from booking.com, that 's a cancellation
+#            if bcBooking.price == 0:
+#                continue  # when price = 0 from booking.com, that 's a cancellation
             allBookingsFromEmails.append(bcBooking)
             sys.stdout.write(".")
         except Exception, e:
@@ -97,7 +97,7 @@ try:
     sys.stdout.write("[DONE]\n")
 
     sys.stdout.write("Adding booking records to DB\n")
-    # adding all bookings for our own db
+    # adding all bookings for our own db;
     for currEmailBooking in allBookingsFromEmails:
         print currEmailBooking.bookingSource, currEmailBooking.confirmationCode
         print currEmailBooking.aptNum, currEmailBooking.checkInDate, str(currEmailBooking.checkOutDate)
@@ -112,6 +112,9 @@ try:
 
     for currEmailBooking in allBookingsFromEmails:
         if not str.isdigit(str( currEmailBooking.aptNum)):
+            continue
+
+        if currEmailBooking.price == 0:  # should go delete the booking here.
             continue
 
         currBSBooking = BS.BSBooking()  # BookingSync booking item

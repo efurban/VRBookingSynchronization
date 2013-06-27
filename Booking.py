@@ -68,6 +68,13 @@ class Booking:
         self.note = None
         self.BS_aptID = None
         self.deposit = None
+        self.address = ''
+
+        # additional fields only to be used for booking.com bookings
+        self.CreditCardType = ''
+        self.CreditCardNum = ''
+        self.ExpiryDate = ''
+        self.CVC = ''
 
 #    def parseBookingFromBS(self, bsObj):
 
@@ -246,12 +253,18 @@ class Booking:
         url = confirmLinks[0].attrMap['href']
         url = url.replace('\\n','')
         page = browser.open(url)
+
+        # without credit card info page
         confirmationPage = page.read().decode("UTF-8")
 
+        # get to the page with credit card information
 #        browser.select_form(nr=0)
 #        browser.form["loginname"] =  "536676"
 #        browser.form["password"] = "nycapt523"
 #        creditCardPage = browser.submit()
+#        finalPageWithCCURL = creditCardPage.wrapped._url
+#        page = browser.open(finalPageWithCCURL)
+#        confirmationPage = page.read().decode("UTF-8")
 
 
         # soup it
@@ -263,6 +276,7 @@ class Booking:
         self.price = int(self.price)
 
         contactSoup = soup.findAll("div", { "class" : "booker-contact" })
+        contactAddressSoup = soup.findAll("div", { "class" : "booker-address" })
         contact = contactSoup[0].string.replace('\\n','').replace('\\t','').split('&#0183;')
         self.phone = contact[0].strip()
         self.email = contact[1].strip()
@@ -281,6 +295,23 @@ class Booking:
         self.bookingDate = mxparser.DateTimeFromString(str(_email['date'])).pydatetime()
         self.bookingSource = "Booking.com"
         self.note = "Booked from Booking.com\n%s\n%s\n%s" % (self.phone, self.email, self.confirmationCode)
+        self.address = contactAddressSoup[0].string.replace('\\n','').replace('\\t','').strip()
+        try:
+            if str(allItems[42].string).isdigit():
+                # for confirmation emails
+                self.CreditCardType = allItems[40].string
+                self.CreditCardNum = allItems[42].string
+                self.ExpiryDate = allItems[46].string
+                self.CVC = allItems[48].string
+            elif str(allItems[44].string).isdigit():
+                # for cancellation emails
+                self.CreditCardType = allItems[42].string
+                self.CreditCardNum = allItems[44].string
+                self.ExpiryDate = allItems[48].string
+                self.CVC = allItems[50].string
+        except Exception, e:
+            pass
+
 
 #        ccSoup = BeautifulSoup(repr(creditCardPage))
 #        allItems = ccSoup.findAll('td')

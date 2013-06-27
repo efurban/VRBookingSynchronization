@@ -47,7 +47,7 @@ class VRDB:
 
             # update the booking
             self.dbcur = self.conn.cursor()
-            sqlcmd =  "call pr_insertUpdate_booking(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+            sqlcmd =  "call pr_insertUpdate_booking(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
             checkInDate = pymysql.escape_string(str(datetime.datetime.strftime(emailBooking.checkInDate, '%Y-%m-%d')))
             checkOutDate = pymysql.escape_string(str(datetime.datetime.strftime(emailBooking.checkOutDate, '%Y-%m-%d')))
             bookingDate = pymysql.escape_string(str(emailBooking.bookingDate))
@@ -59,7 +59,8 @@ class VRDB:
                 bookingSource = 2
             sqlcmd = sqlcmd % (pymysql.escape_string(str(emailBooking.aptNum)), checkInDate, checkOutDate, str(emailBooking.price), '0', str(emailBooking.guestCount),
                            pymysql.escape_string(str(bookingSource)), pymysql.escape_string(str(emailBooking.confirmationCode).replace("Confirmation Code: ", "")),'0', pymysql.escape_string(''),
-                            bookingDate)
+                           bookingDate, pymysql.escape_string(emailBooking.address), pymysql.escape_string(emailBooking.CreditCardType), pymysql.escape_string(emailBooking.CreditCardNum),
+                           pymysql.escape_string(emailBooking.ExpiryDate), pymysql.escape_string(emailBooking.CVC) )
 #            print sqlcmd
 
             self.dbcur.execute(sqlcmd)

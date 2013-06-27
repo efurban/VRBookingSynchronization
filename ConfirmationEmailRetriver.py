@@ -110,6 +110,7 @@ class BookingComConfirmation(object):
             raise 0
 
         imapSession.select('[Gmail]/All Mail', True)
+#        typ, data = imapSession.uid('search', None, '(SENTSINCE {date} HEADER Subject "Please confirm: new reservation! (206018895, Wednesday, 24 July 13)")'.format(date=date))
         typ, data = imapSession.uid('search', None, '(SENTSINCE {date} HEADER Subject "Please confirm: new reservation! ")'.format(date=date))
         if typ != 'OK':
             print('Error searching Inbox.')
