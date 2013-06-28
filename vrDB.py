@@ -57,10 +57,10 @@ class VRDB:
                 bookingSource = 1
             if emailBooking.bookingSource == "Wimdu":
                 bookingSource = 2
-            sqlcmd = sqlcmd % (pymysql.escape_string(str(emailBooking.aptNum)), checkInDate, checkOutDate, str(emailBooking.price), '0', str(emailBooking.guestCount),
-                           pymysql.escape_string(str(bookingSource)), pymysql.escape_string(str(emailBooking.confirmationCode).replace("Confirmation Code: ", "")),'0', pymysql.escape_string(''),
-                           bookingDate, pymysql.escape_string(emailBooking.address), pymysql.escape_string(emailBooking.CreditCardType), pymysql.escape_string(emailBooking.CreditCardNum),
-                           pymysql.escape_string(emailBooking.ExpiryDate), pymysql.escape_string(emailBooking.CVC) )
+            sqlcmd = sqlcmd % (pymysql.escape_string(str(emailBooking.aptNum)), checkInDate, checkOutDate, str(emailBooking.price), '0', str(emailBooking.guestCount or ''),
+                           pymysql.escape_string(str(bookingSource or '')), pymysql.escape_string(str(emailBooking.confirmationCode).replace("Confirmation Code: ", "")),'0', pymysql.escape_string(''),
+                           bookingDate, pymysql.escape_string(emailBooking.address or ''), pymysql.escape_string(emailBooking.CreditCardType or ''), pymysql.escape_string(emailBooking.CreditCardNum or ''),
+                           pymysql.escape_string(emailBooking.ExpiryDate or ''), pymysql.escape_string(emailBooking.CVC or '') )
 #            print sqlcmd
 
             self.dbcur.execute(sqlcmd)

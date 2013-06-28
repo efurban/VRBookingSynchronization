@@ -11,9 +11,11 @@ import mechanize
 reload(sys)
 sys.setdefaultencoding("utf8")
 
-numOfDaysLookback_Airbnb = 2
-numOfDaysLookback_Wimdu = 2
-numOfDaysLookback_bookingCom =1
+numOfDaysLookback_Airbnb = 0
+numOfDaysLookback_Wimdu = 0
+numOfDaysLookback_bookingCom = 4
+
+SEND_EMAIL = False
 
 Dry = False
 FillDBOnly = False
@@ -21,20 +23,25 @@ FillDBOnly = False
 try:
     emailMessage = ""
     aptIDExceptions = vrDB.VRDB().getAptIDMappingExceptions()
+    wimduEmails = None
+    airbnbEmails = None
+    bookingComEmails = None
 
-    airbnbEmails = confirmations.AirbnbConfirmation()
-    airbnbEmails.GetAll(numOfDaysLookback_Airbnb)
+    if numOfDaysLookback_Airbnb > 0:
+        airbnbEmails = confirmations.AirbnbConfirmation()
+        airbnbEmails.GetAll(numOfDaysLookback_Airbnb)
 
-    wimduEmails  = confirmations.WimduConfirmation()
-    wimduEmails.GetAll(numOfDaysLookback_Wimdu)
+    if numOfDaysLookback_Wimdu > 0:
+        wimduEmails  = confirmations.WimduConfirmation()
+        wimduEmails.GetAll(numOfDaysLookback_Wimdu)
+
+    if numOfDaysLookback_bookingCom > 0:
+        bookingComEmails  = confirmations.BookingComConfirmation()
+        bookingComEmails.GetAll(numOfDaysLookback_bookingCom)
 
     allBookingsFromEmails = []
     db = vrDB.VRDB()
 
-    bookingComEmails  = confirmations.BookingComConfirmation()
-    bookingComEmails.GetAll(numOfDaysLookback_bookingCom)
-
-    sys.stdout.write("Parsing Booking.com emails")
 
     # log into the auth page at booking.com so we don't need to login later when retrieving the booking info
     browser = mechanize.Browser()
@@ -48,41 +55,50 @@ try:
     browser.form["password"] = "nycapt523"
     browser.submit()
 
-    for eBody in bookingComEmails.emails:
-        bcBooking = emailBooking.Booking()  # can be any booking (Airbnb, wimdu...etc)
-        try:
-            bcBooking.parseBookingFromBookingComEmail(eBody)  # confirmed booking from Airbnb, could be new or existing
-#            if bcBooking.price == 0:
-#                continue  # when price = 0 from booking.com, that 's a cancellation
-            allBookingsFromEmails.append(bcBooking)
-            sys.stdout.write(".")
-        except Exception, e:
-            print 'something is wrong', e
-            continue
+    sys.stdout.write("Parsing Booking.com emails")
+    if bookingComEmails is not None:
+        for eBody in bookingComEmails.emails:
+            bcBooking = emailBooking.Booking()  # can be any booking (Airbnb, wimdu...etc)
+            try:
+                bcBooking.parseBookingFromBookingComEmail(eBody)  # confirmed booking from Airbnb, could be new or existing
+    #            if bcBooking.price == 0:
+    #                continue  # when price = 0 from booking.com, that 's a cancellation
+                allBookingsFromEmails.append(bcBooking)
+                sys.stdout.write(".")
+            except Exception, e:
+                print 'something is wrong', e
+                continue
     sys.stdout.write("[DONE]\n")
+
 
     sys.stdout.write("Parsing Wimdu emails")
-    for eBody in wimduEmails.emails:
-        wBooking = emailBooking.Booking()  # can be any booking (Airbnb, wimdu...etc)
-        try:
-            wBooking.parseBookingFromWimduEmail(eBody)  # confirmed booking from Airbnb, could be new or existing
-            allBookingsFromEmails.append(wBooking)
-            sys.stdout.write(".")
-        except Exception, e:
-            print 'something is wrong', e
-            continue
+    if wimduEmails is not None:
+        for eBody in wimduEmails.emails:
+            wBooking = emailBooking.Booking()  # can be any booking (Airbnb, wimdu...etc)
+            try:
+                wBooking.parseBookingFromWimduEmail(eBody)  # confirmed booking from Airbnb, could be new or existing
+                allBookingsFromEmails.append(wBooking)
+                sys.stdout.write(".")
+            except Exception, e:
+                print 'something is wrong', e
+                continue
     sys.stdout.write("[DONE]\n")
 
+
     sys.stdout.write("Parsing Airbnb emails")
-    for emailBody in airbnbEmails.emails:
-        abBooking = emailBooking.Booking()  # can be any booking (Airbnb, wimdu...etc)
-        try:
-            abBooking.parseBookingFromAirbnbEmail(emailBody)  # confirmed booking from Airbnb, could be new or existing
-            allBookingsFromEmails.append(abBooking)
-            sys.stdout.write(".")
-        except Exception, e:
-            print 'something is wrong', e
-            continue
+    if airbnbEmails is not None:
+        for emailBody in airbnbEmails.emails:
+            abBooking = emailBooking.Booking()  # can be any booking (Airbnb, wimdu...etc)
+            try:
+                abBooking.parseBookingFromAirbnbEmail(emailBody)  # confirmed booking from Airbnb, could be new or existing
+                allBookingsFromEmails.append(abBooking)
+                sys.stdout.write(".")
+            except Exception, e:
+                print 'something is wrong', e
+                continue
+    sys.stdout.write("[DONE]\n")
+
+
 
     # special apt ID mapping case
     for em in allBookingsFromEmails:
@@ -198,7 +214,7 @@ try:
                 emailMessage = emailMessage + e.content
                 pass
 
-    if emailMessage.__len__() > 0:
+    if emailMessage.__len__() > 0 and SEND_EMAIL:
         gmail.mail(", ".join(["traviswu@gmail.com","cwjacklin@gmail.com"]),
             "new bookings",
             emailMessage,
