@@ -225,6 +225,7 @@ class Booking:
 
     def parseBookingFromBookingComEmail(self, emailBody):
         _email = email.message_from_string(emailBody)
+        print _email['subject']
         emailBody = ""
         payload = _email.get_payload(decode=True)
         # there is only one , so this walk is ok
@@ -322,7 +323,11 @@ class Booking:
 
         bookerInfoSoup = soup.find("div", { "class" : "booker-info" })
         bookerInfo = bookerInfoSoup.contents[0].replace('\\n','').replace('\\t','').split('\\xb7')
-        self.bookingDate =  datetime.datetime.strptime(bookerInfo[0].strip(), '%A, %B %d, %Y at %H:%M:%S')
+        try:
+            self.bookingDate =  datetime.datetime.strptime(bookerInfo[0].strip(), '%A, %B %d, %Y at %H:%M:%S')
+        except Exception, e:
+            self.bookingDate =  datetime.datetime.strptime(bookerInfo[0].strip(), '%A, %B %d, %Yat%H:%M:%S')
+
         self.confirmationCode = bookerInfo[1].strip()
         self.guestName = allItems[1].contents[1].contents[0].replace('\\n','').replace('\\t','').strip()
         self.guestName = self.guestName.decode('unicode_escape').encode('utf-8').decode('utf-8')

@@ -7,9 +7,14 @@ from email.MIMEText import MIMEText
 from email import Encoders
 import os
 
-gmail_user = "nycaptapt@gmail.com"
-gmail_name = "NYC Apt <nycaptapt@gmail.com>"
-gmail_pwd = "vavanyc99"
+#gmail_user = "nycaptapt@nycaptapt.webfaction.com"
+#gmail_name = "nycaptapt@nycaptapt.webfaction.com"
+gmail_user = "nycaptapt"
+gmail_name = "nycaptapt@nycaptapt.webfaction.com"
+gmail_pwd = "vava22nyc99"
+#gmail_user = "nycaptapt@gmail.com"
+#gmail_name = "NYC Apt <nycaptapt@gmail.com>"
+#gmail_pwd = "vavanyc99"
 
 def mail(to, subject, text, attach):
     msg = MIMEMultipart()
@@ -28,7 +33,8 @@ def mail(to, subject, text, attach):
 #        'attachment; filename="%s"' % os.path.basename(attach))
 #    msg.attach(part)
 
-    mailServer = smtplib.SMTP("smtp.gmail.com", 587)
+#    mailServer = smtplib.SMTP("smtp.gmail.com", 587)  - - works for gmail
+    mailServer = smtplib.SMTP("smtp.webfaction.com", 587)
     #mailServer = smtplib.SMTP_SSL("smtp.gmail.com", 465)   # didn't work for me
     mailServer.ehlo()
     mailServer.starttls()

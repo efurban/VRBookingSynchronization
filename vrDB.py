@@ -57,6 +57,8 @@ class VRDB:
                 bookingSource = 1
             if emailBooking.bookingSource == "Wimdu":
                 bookingSource = 2
+            if emailBooking.bookingSource == 'Booking.com':
+                bookingSource = 6
             sqlcmd = sqlcmd % (pymysql.escape_string(str(emailBooking.aptNum)), checkInDate, checkOutDate, str(emailBooking.price), '0', str(emailBooking.guestCount or ''),
                            pymysql.escape_string(str(bookingSource or '')), pymysql.escape_string(str(emailBooking.confirmationCode).replace("Confirmation Code: ", "")),'0', pymysql.escape_string(''),
                            bookingDate, pymysql.escape_string(emailBooking.address or ''), pymysql.escape_string(emailBooking.CreditCardType or ''), pymysql.escape_string(emailBooking.CreditCardNum or ''),

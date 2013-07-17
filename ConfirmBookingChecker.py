@@ -11,17 +11,17 @@ import mechanize
 reload(sys)
 sys.setdefaultencoding("utf8")
 
-numOfDaysLookback_Airbnb = 0
-numOfDaysLookback_Wimdu = 0
-numOfDaysLookback_bookingCom = 4
+numOfDaysLookback_Airbnb = 1
+numOfDaysLookback_Wimdu = 1
+numOfDaysLookback_bookingCom = 10
 
-SEND_EMAIL = False
+SEND_EMAIL = True
 
 Dry = False
 FillDBOnly = False
 
 try:
-    emailMessage = ""
+
     aptIDExceptions = vrDB.VRDB().getAptIDMappingExceptions()
     wimduEmails = None
     airbnbEmails = None
@@ -126,6 +126,8 @@ try:
     if FillDBOnly:
         sys.exit(0)
 
+    emailMessage = ''
+
     for currEmailBooking in allBookingsFromEmails:
         if not str.isdigit(str( currEmailBooking.aptNum)):
             continue
@@ -211,11 +213,17 @@ try:
                     print 'Dry run: post/create booking'
             except Exception, e:
                 print e.content
-                emailMessage = emailMessage + e.content
+                emailMessage = emailMessage + e.content + "\n\n"
                 pass
 
     if emailMessage.__len__() > 0 and SEND_EMAIL:
-        gmail.mail(", ".join(["traviswu@gmail.com","cwjacklin@gmail.com"]),
+        to_addrs = ['cwjacklin@gmail.com', 'traviswu@gmail.com']
+        gmail.mail(", ".join(["cwjacklin@gmail.com", "traviswu@gmail.com"]),
+#        gmail.mail(to_addrs,
+                "new bookings",
+            emailMessage,
+            "")
+        gmail.mail(", ".join(["traviswu@gmail.com", "cwjacklin@gmail.com"]),
             "new bookings",
             emailMessage,
             "")
