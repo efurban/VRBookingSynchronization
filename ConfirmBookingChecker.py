@@ -13,7 +13,7 @@ sys.setdefaultencoding("utf8")
 
 numOfDaysLookback_Airbnb = 1
 numOfDaysLookback_Wimdu = 1
-numOfDaysLookback_bookingCom = 10
+numOfDaysLookback_bookingCom = 55
 
 SEND_EMAIL = True
 

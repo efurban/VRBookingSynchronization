@@ -288,7 +288,9 @@ class Booking:
             pass
 
         confirmationPage = driver.page_source
-#        driver.save_screenshot( 'screen_3.png') # save a screenshot to disk
+        driver.save_screenshot( str(self.confirmationCode) + '_' + datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + '_CC_.png') # save a screenshot to disk
+
+    #        driver.save_screenshot( 'screen_3.png') # save a screenshot to disk
 
         ########################
 
@@ -356,7 +358,6 @@ class Booking:
         except Exception, e:
             pass
 
-        driver.save_screenshot( str(self.confirmationCode) + '_' + datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + '_CC_.png') # save a screenshot to disk
 
 #        ccSoup = BeautifulSoup(repr(creditCardPage))
 #        allItems = ccSoup.findAll('td')
